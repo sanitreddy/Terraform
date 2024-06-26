@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  TargetRoleInNewAccount:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: DefaultVpcDelete
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "arn:aws:sts::654654530894:assumed-role/AWSReservedSSO_AdministratorAccess_57271810ba11648a/DemoUser"
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: vpc-deletePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: '*'
