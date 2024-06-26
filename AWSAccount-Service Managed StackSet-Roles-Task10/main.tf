@@ -28,7 +28,14 @@ data "external" "delete_vpc" {
   query = {
     new_account_id = aws_organizations_account.new_account.id
   }
-  depends_on = [ aws_cloudformation_stack_set_instance.iam_role_stackset_instance.id ]
+}
+
+terraform {
+  backend "s3" {
+    bucket = "nitco-homes"
+    key    = "terraform.tfstate"
+    region = "ap-south-1"
+  }
 }
 
 output "new_account_id" {
