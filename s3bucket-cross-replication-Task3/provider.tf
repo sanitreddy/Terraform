@@ -1,16 +1,12 @@
 provider "aws" {
-  region  = var.source_region
-  profile = var.source_profile
+  alias   = "account1"
+  region  = "ap-south-1"
 }
 
 provider "aws" {
-  alias   = "source"
-  region  = var.source_region
-  profile = var.source_profile
-}
-
-provider "aws" {
-  alias   = "dest"
-  region  = var.dest_region
-  profile = var.dest_profile
+  alias   = "account2"
+  region  = "ap-south-1"
+  assume_role {
+    role_arn = "arn:aws:iam::211125474755:role/AdminTerraformRole"
+  }
 }

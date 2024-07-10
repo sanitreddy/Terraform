@@ -2,20 +2,16 @@
 # S3 bucket to act as the replication target.
 # ------------------------------------------------------------------------------
 resource "aws_s3_bucket" "destination" {
-  provider = aws.dest
-  bucket   = var.bucket_prefix
+  provider = aws.account2
+  bucket   = var.destination_bucket
 }
 
 resource "aws_s3_bucket_versioning" "destination" {
-  provider = aws.dest
+  provider = aws.account2
   bucket   = aws_s3_bucket.destination.id
 
   versioning_configuration {
     status = "Enabled"
-  }
-
-  lifecycle {
-    prevent_destroy = false
   }
 }
 
@@ -23,50 +19,37 @@ resource "aws_s3_bucket_versioning" "destination" {
 # The destination bucket needs a policy that allows the source account to
 # replicate into it.
 # ------------------------------------------------------------------------------
-resource "aws_s3_bucket_policy" "destination" {
-  provider = aws.dest
-  bucket   = aws_s3_bucket_versioning.destination.id
+resource "aws_iam_policy" "destination_policy" {
+  provider = aws.account2
+  name     = "destination-bucket-policy"
 
-  policy = <<POLICY
-{
-  "Version": "2008-10-17",
-  "Id": "",
-  "Statement": [
-    {
-      "Sid": "AllowReplication",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::${var.source_account}:root"
-      },
-      "Action": [
-        "s3:GetBucketVersioning",
-        "s3:PutBucketVersioning",
-        "s3:ReplicateObject",
-        "s3:ReplicateDelete",
-        "s3:ObjectOwnerOverrideToBucketOwner"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.destination.arn}",
-        "${aws_s3_bucket.destination.arn}/*"
-      ]
-    },
-    {
-      "Sid": "AllowRead",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "s3:List*",
-        "s3:Get*"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.destination.arn}",
-        "${aws_s3_bucket.destination.arn}/*"
-      ]
-    }
-  ]
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "s3:Replicate*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.destination.bucket}/*"
+      }
+    ]
+  })
 }
-POLICY
 
+resource "aws_s3_bucket_policy" "destination_bucket_policy" {
+  provider = aws.account2
+  bucket   = aws_s3_bucket.destination.bucket
+
+   policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::654654530894:root"
+        }
+        Action = "s3:Replicate*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.destination.bucket}/*"
+      }
+    ]
+  })
 }
