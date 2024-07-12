@@ -60,27 +60,19 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-data "archive_file" "lambda" {
-  type        = "zip"
-  source_file = "create_lambda.py"
-  output_path = "create_lambda.zip"
-}
 
 resource "aws_lambda_function" "create_lambda" {
+  filename      = "create_lambda.zip"
   function_name = var.lambda_function_name
   runtime       = "python3.8"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "create_lambda.lambda_handler"
-
-  filename      = "create_lambda.zip"
 
   environment {
     variables = {
       TABLE_NAME = var.dynamodb_table_name
     }
   }
-
-  source_code_hash = data.archive_file.lambda.output_base64sha256
 }
 
 resource "aws_apigatewayv2_api" "crud_api" {
@@ -98,6 +90,12 @@ resource "aws_apigatewayv2_route" "create_route" {
   api_id    = aws_apigatewayv2_api.crud_api.id
   route_key = "POST /items"
   target    = "integrations/${aws_apigatewayv2_integration.create_integration.id}"
+}
+
+resource "aws_apigatewayv2_stage" "default_stage" {
+  api_id      = aws_apigatewayv2_api.crud_api.id
+  name        = "$default"
+  auto_deploy = true
 }
 
 resource "aws_lambda_permission" "apigw_lambda" {
