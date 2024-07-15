@@ -8,6 +8,10 @@ output "instance_private_ip" {
   value       = aws_instance.example_instance.private_ip
 }
 
+output "ami_id" {
+  value = data.aws_ami.latest_amazon_linux.id
+}
+
 output "vpc_id" {
   description = "ID of the VPC"
   value       = aws_vpc.example_vpc.id

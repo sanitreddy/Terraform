@@ -22,12 +22,6 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "ami_id" {
-  description = "AMI ID to use for the EC2 instance"
-  type        = string
-  default     = "ami-00fa32593b478ad6e" # Replace with your desired AMI ID
-}
-
 variable "key_name" {
   description = "Key pair name to use for the instance"
   type        = string
